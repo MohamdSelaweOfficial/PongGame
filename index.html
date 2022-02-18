@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>game</title>
+  </head>
+  <script>
+    var canvas;
+    var canvasContext;
+    var ballX=50;
+    var ballY=50;
+    var ballSpeedX=4;
+    var ballSpeedY=4;
+    var WinningScreen=false;
+    var PlayerScore1=0;
+    var PlayerScore2=0;
+    const winning_score=5;
+
+    var paddle1Y=250;
+    var paddle2Y=250;
+    const PADDLE_HEIGHT=100;
+//this funcation claculate our mouse location on the page
+    function calculateMousePos(evt){
+      //canvas.getBoundingClientRect() give us information about the position and width and height of the canvas
+      var rect = canvas.getBoundingClientRect();
+      var root=document.documentElement;
+      //when we get the x and y values outside our canvas as well so we do this in order to exclude any information from outside the canvas
+      var mouseX=evt.clientX-rect.left-root.scrollLeft;
+      var mouseY=evt.clientY-rect.top-root.scrollTop;
+      return{
+        x:mouseX,
+        y:mouseY
+      };
+    }
+
+    window.onload=function(){
+      canvas=document.getElementById('gamecanvas');
+      canvasContext=canvas.getContext('2d');
+      //frame rate per sec, so if we want the object to move 30 per sec we need to divide the 1000 with 30
+      var framerate=100;
+      //setInterval() is a funcation that calls another funcation
+      //endless number of times every certen amount of time for example 1000= 1 sec
+      setInterval(function(){
+        moveEverything();
+        drawEverything();
+      },1000/framerate);
+      //in order we take user input we use a listener funcation that check
+      //user input like mouse movement and clicks
+      canvas.addEventListener('mousemove',function(evt){
+        var mousePos=calculateMousePos(evt);
+        paddle1Y=mousePos.y-(PADDLE_HEIGHT/2);
+      });
+    }
+//rest the ball in the middle of the canvas
+    function ballReset(){
+      //how to rest the score when reach 3
+      if(PlayerScore1>=winning_score|| PlayerScore2>=winning_score){
+        PlayerScore1=0;
+        PlayerScore2=0;
+        WinningScreen=true;
+      }
+      ballX=canvas.width/2;
+      ballY=canvas.height/2;
+    }
+    //creating AI or making the other paddle move with the ball
+    function computeMovement(){
+      var paddle2YCenter=paddle2Y+(PADDLE_HEIGHT/2);
+      if(paddle2YCenter < ballY-35){
+        paddle2Y+=3;
+      } else if(paddle2YCenter> ballY+35){
+        paddle2Y-=3;
+      }
+    }
+
+    function moveEverything(){
+
+      computeMovement();
+      ballX=ballX+ballSpeedX;
+      ballY=ballY+ballSpeedY;
+      //how to make the ball bounce back when hit the wall
+      // if the ball hit 800 pixal or canvas.width width the speed will turn nigative
+      //should use canvas.width to be more flexable because if we change the width later we don't need to do it again
+
+      if(ballX>canvas.width){
+        //how to make the ball bounce when touch the Paddle
+        if (ballY>paddle2Y && ballY<paddle2Y+PADDLE_HEIGHT) {
+          ballSpeedX=-ballSpeedX;
+        }else {
+          PlayerScore1+=1;
+          ballSpeedX=-ballSpeedX;
+          ballReset();
+        }
+
+      }
+      if(ballX<0){
+        //how to make the ball bounce when touch the Paddle
+
+        if (ballY>paddle1Y && ballY<paddle1Y+PADDLE_HEIGHT) {
+          ballSpeedX=-ballSpeedX;
+        } else {
+          //how to make the ball bounce from the left to right
+          PlayerScore2+=1;
+          ballSpeedX=-ballSpeedX;
+          ballReset();
+
+        }
+      }
+      //how to make the ball bounce from the top to bottom
+      if(ballY>canvas.height){
+        ballSpeedY=-ballSpeedY;
+      }
+      if(ballY<0){
+        ballSpeedY=-ballSpeedY;
+      }
+
+    }
+
+    function drawEverything(){
+
+      //console.log(ballX,ballY);
+      //with fillStyle we can choose color the inside of a shape like making a square red or blue
+      //fillRect determen the size and the dimonsion and the location of the object on X and Y Axis
+      //the first number determen X and the then Y and then the last 2 number determen the width and the height
+      canvasContext.fillStyle='black';
+      canvasContext.fillRect(0,0,canvas.width,canvas.height);
+      //left paddle
+      canvasContext.fillStyle='white';
+      canvasContext.fillRect(0,paddle1Y,10,PADDLE_HEIGHT);
+      //right paddle
+      canvasContext.fillStyle='white';
+      canvasContext.fillRect(790,paddle2Y,10,PADDLE_HEIGHT);
+      canvasContext.fillStyle='green';
+      //how to make a circle
+      canvasContext.beginPath();
+      canvasContext.arc(ballX,ballY,10,0,Math.PI*2,true);
+      canvasContext.fill();
+      canvasContext.fillStyle='white';
+      //how to show text on the canvas
+      canvasContext.fillText(PlayerScore1,100,100);
+      canvasContext.fillText(PlayerScore2,700,100);
+
+    }
+  </script>
+  <body>
+    <!--canvas make space for us on the screen to draw animation-->
+    <canvas id="gamecanvas" width="800" height="600"></canvas>
+
+  </body>
+</html>
